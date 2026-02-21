@@ -5,6 +5,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <float.h>
+#include <math.h>
+
+typedef struct Tema {
+    int tiempo;
+    int puntaje;
+    float ratio;
+} Tema;
+
+int compareTema(const void *a, const void *b) {
+
+    Tema *temaA = (Tema *)a;
+    Tema *temaB = (Tema *)b;
+
+    if (fabs(temaA->ratio - temaB->ratio) < FLT_EPSILON) {  //Si son iguales por ratio, desempatar por puntaje
+
+        if (temaA->puntaje < temaB->puntaje) {
+            return 1;
+        } else if (temaA->puntaje > temaB->puntaje) {
+            return -1;
+        } else {
+            return 0;
+        }
+
+    } else if (temaA->ratio < temaB->ratio) {               //Si no, ordenar por ratio
+        return 1;
+        
+    } else {
+        return -1;
+    }
+}
 
 int random_int(int min, int max) {
     return min + rand() % (max - min + 1);
@@ -18,45 +49,52 @@ int *random_array(int n, int min, int max) {
     return arr;
 }
 
-void Backtracking(int depth, int *t, int *p, int n, int T, int *max_value, int *perm, int *sol) {
+void Backtracking(int depth, Tema* temas, int *remainingSum, int n, int T, int *max_value, int *perm, int *sol, int current_T, int current_value) {
 
-    if (n == depth){
-        int sum_T = 0;
-        int sum_P = 0;
-        for (int i = 0; i < n; i++){
-            if (perm[i] == 1){
-                sum_T += t[i];
-                sum_P += p[i];
-            }
-        }
-        if (sum_T <= T && sum_P > *max_value){
-            *max_value = sum_P;
-            for (int i = 0; i < n; i++){
-                sol[i] = perm[i];
-            }
-        }
+    if (current_value + remainingSum[depth] <= *max_value) {
         return;
     }
 
-    perm[depth] = 1;
-    Backtracking(depth + 1, t, p, n, T, max_value, perm, sol);
+    if (n == depth) {
+        *max_value = current_value;
+        for (int i = 0; i < n; i++) sol[i] = perm[i];
+        return;
+    }
 
-    perm[depth] = 0;
-    Backtracking(depth + 1, t, p, n, T, max_value, perm, sol);
+    if (current_T + temas[depth].tiempo <= T) {
+        perm[depth] = 1;
+        Backtracking(depth + 1, temas, remainingSum, n, T, max_value, perm, sol, current_T + temas[depth].tiempo, current_value + temas[depth].puntaje);
+        perm[depth] = 0;
+    }
+
+    Backtracking(depth + 1, temas, remainingSum, n, T, max_value, perm, sol, current_T, current_value);
+    
 }
 
 int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
     int *perm = (int *)calloc(n, sizeof(int));
     int *sol = (int *)calloc(n, sizeof(int));
+    int *remainingSum = (int *)calloc(n + 1, sizeof(int));
 
-    Backtracking(0, t, p, n, T, max_value, perm, sol);
+    Tema *temas = (Tema *)malloc(n * sizeof(Tema));
+    for (int i = 0; i < n; i++){
+        temas[i].tiempo = t[i];
+        temas[i].puntaje = p[i];
+        temas[i].ratio = (float)p[i] / t[i];
+    }
+
+    qsort(temas, n, sizeof(Tema), compareTema);
+
+    for (int i = n - 1; i >= 0; i--){
+        remainingSum[i] = remainingSum[i + 1] + temas[i].puntaje;
+    }
+
+    Backtracking(0, temas, remainingSum, n, T, max_value, perm, sol, 0, 0);
 
     free(perm);
 
     for (int i = 0; i < n; i++){
-        if (sol[i] == 1){
-            (*size)++;
-        }
+        if (sol[i] == 1) (*size)++;
     }
 
     if (*size == 0){
@@ -66,9 +104,7 @@ int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
 
     int *ans = (int *)malloc((*size) * sizeof(int));
     for (int i = 0, j = 0; i < n; i++){
-        if (sol[i] == 1){
-            ans[j++] = i + 1;
-        }
+        if (sol[i] == 1) ans[j++] = i + 1;
     }
     free(sol);
     return ans;
@@ -81,10 +117,16 @@ int main(int argc, char *argv[]) {
     struct timespec start, end;
 
     int n = atoi(argv[1]);
-    int T = atoi(argv[2]);
+    int T_mult = atoi(argv[2]);
 
     int *t = random_array(n, 1, 10);
     int *p = random_array(n, 1, 10);
+
+    int T = 0;
+    for (int i = 0; i < n; i++) {
+        T += t[i];
+    }
+    T = (T * T_mult) / 100;
 
     int *max_valueBT = (int *)calloc(1, sizeof(int));
     int *sizeBT = (int *)calloc(1, sizeof(int));
