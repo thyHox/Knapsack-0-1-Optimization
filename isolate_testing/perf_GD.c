@@ -26,7 +26,7 @@ int *Greedy_Solve(int *t, int *p, int n, int T, int *max_value, int *size) {
 
     int current_time = 0;
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n && current_time < T; i++) {
         int selected = i;
         for (int j = 0; j < n; j++) {
             if (fabs(ratio[j] - ratio[selected]) < FLT_EPSILON) {
@@ -67,9 +67,15 @@ int main(int argc, char *argv[]) {
     struct timespec start, end;
 
     int n = atoi(argv[1]);
-    int T = atoi(argv[2]);
+    int T_mult = atoi(argv[2]);
     int *t = random_array(n, 1, 20);
     int *p = random_array(n, 1, 50);
+
+    int T = 0;
+    for (int i = 0; i < n; i++) {
+        T += t[i];
+    }
+    T = (T * T_mult) / 100;
 
     int *max_value_greedy = (int *)calloc(1, sizeof(int));
     int *size_greedy = (int *)calloc(1, sizeof(int));

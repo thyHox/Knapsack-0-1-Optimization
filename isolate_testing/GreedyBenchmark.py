@@ -8,11 +8,11 @@ SOURCE_FILE = "perf_GD.c"
 EXECUTABLE = "./perf_GD"
 
 # X-Axis: Greedy is fast, so we use large N
-N_VALUES = [10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000]
+N_VALUES = [10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000]
 
 # Lines: Constraint Levels
 # 2 = 20%, 5 = 50%, 8 = 80%
-T_MULTIPLIERS = [1000000, 2000000, 3000000, 4000000, 5000000]
+T_MULTIPLIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 
 # REPETITIONS: High count recommended for fast algorithms
 NUM_RUNS = 10
@@ -23,7 +23,7 @@ def compile_c_code():
         return False
     print("Compiling Greedy code...")
     try:
-        subprocess.check_call(["gcc", SOURCE_FILE, "-o", EXECUTABLE, "-lrt"])
+        subprocess.check_call(["gcc", SOURCE_FILE, "-o", EXECUTABLE, "-O0"])
         print("Compilation successful.\n")
         return True
     except subprocess.CalledProcessError:

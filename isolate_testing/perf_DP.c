@@ -64,9 +64,9 @@ int *DP_Solve(int *t, int*p, int n, int T, int *max_value, int *size) {
     return ans;
 }
 
-int main(){
-    int n = 50000;
-    int T = 250000;
+int main(int argc, char *argv[]) {
+    int n = atoi(argv[1]);
+    int T = atoi(argv[2]);
     int *t = random_array(n, 1, 100);
     int *p = random_array(n, 1, 100);
     int max_value = 0;
@@ -79,7 +79,7 @@ int main(){
     long seconds = end.tv_sec - start.tv_sec;
     long nanoseconds = end.tv_nsec - start.tv_nsec;
     double elapsed = seconds + nanoseconds*1e-9;
-    printf("Elapsed time: %.5f seconds\n", elapsed);
+    printf("Elapsed time: %f seconds\n", elapsed);
 
     /*
     printf("Max value: %d\n", max_value);
