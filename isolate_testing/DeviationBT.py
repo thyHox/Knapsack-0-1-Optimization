@@ -9,7 +9,7 @@ import numpy as np # Importante para graficar las áreas sombreadas
 SOURCE_FILE = "perf_BT.c"
 EXECUTABLE = "./test_backtracking"
 
-N_VALUES = [45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55] # Ajustado para enfocarnos en N más grandes
+N_VALUES = [100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700] # Ajustado para enfocarnos en N más grandes
 T_MULTIPLIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 NUM_RUNS = 10 
 
