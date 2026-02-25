@@ -9,7 +9,7 @@ import numpy as np # Importante para graficar las áreas sombreadas
 SOURCE_FILE = "perf_BT.c"
 EXECUTABLE = "./test_backtracking"
 
-N_VALUES = [100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700] # Ajustado para enfocarnos en N más grandes
+N_VALUES = [10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000] # Ajustado para enfocarnos en N más grandes
 T_MULTIPLIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 NUM_RUNS = 10 
 
@@ -20,7 +20,7 @@ def compile_c_code():
     print("Compiling BT code...")
     try:
         # Añadido -O2 para optimizar el código recursivo
-        subprocess.check_call(["gcc", SOURCE_FILE, "-o", "test_backtracking", "-O2", "-Wall"])
+        subprocess.check_call(["gcc", SOURCE_FILE, "-o", "test_backtracking", "-O0", "-Wl,--stack,16777216"])
         print("Compilation successful.\n")
         return True
     except subprocess.CalledProcessError:

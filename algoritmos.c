@@ -49,163 +49,153 @@ int *random_array(int n, int min, int max) {
     return arr;
 }
 
-void BT_Recursion(Tema* sorted_temas, int *remainingSum, int *current_permutation, int *best_permutation,int n, int T, int depth, int current_T, int current_value, int *max_value){
+void Backtracking(int depth, Tema* temas, int n, int T, int *max_value, int *perm, int *sol, int current_T, int current_value) {
 
-    if (current_value + remainingSum[depth] <= *max_value){
-        return;
-    }
-
-    if (n == depth){
+    if (n == depth) {
         *max_value = current_value;
-        for (int i = 0; i < n; i++){
-            best_permutation[i] = current_permutation[i];
-        }
+        for (int i = 0; i < n; i++) sol[i] = perm[i];
         return;
     }
 
-    if (current_T + sorted_temas[depth].tiempo <= T){
-
-        current_permutation[sorted_temas[depth].index] = 1;
-        BT_Recursion(sorted_temas, remainingSum, current_permutation, best_permutation, n, T, depth + 1, current_T + sorted_temas[depth].tiempo, current_value + sorted_temas[depth].puntaje, max_value);
-            
-        current_permutation[sorted_temas[depth].index] = 0;
+    int upper_bound = current_value;
+    int time_accumulated = current_T;
+    for (int i = depth; i < n; i++) {
+        if (time_accumulated + temas[i].tiempo <= T) {
+            time_accumulated += temas[i].tiempo;
+            upper_bound += temas[i].puntaje;
+        } else {
+            upper_bound += (temas[i].puntaje * (T - time_accumulated)) / temas[i].tiempo;
+            break;
+        }
     }
-    BT_Recursion(sorted_temas, remainingSum, current_permutation, best_permutation, n, T, depth + 1, current_T, current_value, max_value);
-}   
+
+    if (upper_bound <= *max_value) {
+        return;
+    }
+
+    if (current_T + temas[depth].tiempo <= T) {
+        perm[temas[depth].index] = 1;
+        Backtracking(depth + 1, temas, n, T, max_value, perm, sol, current_T + temas[depth].tiempo, current_value + temas[depth].puntaje);
+        perm[temas[depth].index] = 0;
+    }
+
+    Backtracking(depth + 1, temas, n, T, max_value, perm, sol, current_T, current_value);
+    
+}
 
 int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
-    int *current_permutation = (int *)calloc(n, sizeof(int));
-    int *best_permutation = (int *)calloc(n, sizeof(int));
-    
-    Tema *sorted_temas = (Tema *)malloc(n * sizeof(Tema));
-    for (int i = 0; i < n; i++){
-        sorted_temas[i].tiempo = t[i];
-        sorted_temas[i].puntaje = p[i];
-        sorted_temas[i].ratio = (float)p[i] / t[i];
-        sorted_temas[i].index = i;
-    }
-    qsort(sorted_temas, n, sizeof(Tema), compareTema);
+    int *perm = (int *)calloc(n, sizeof(int));
+    int *sol = (int *)calloc(n, sizeof(int));
 
-    int *remainingSum = (int *)calloc((n + 1), sizeof(int));
-    for (int i = n - 1; i >= 0; i--) {
-        remainingSum[i] = remainingSum[i + 1] + sorted_temas[i].puntaje;
+    Tema *temas = (Tema *)malloc(n * sizeof(Tema));
+    for (int i = 0; i < n; i++){
+        temas[i].index = i;
+        temas[i].tiempo = t[i];
+        temas[i].puntaje = p[i];
+        temas[i].ratio = (float)p[i] / t[i];
     }
 
-    BT_Recursion(sorted_temas, remainingSum, current_permutation, best_permutation, n, T, 0, 0, 0, max_value);
-    free(current_permutation);
-    free(remainingSum);
-    free(sorted_temas);
+    qsort(temas, n, sizeof(Tema), compareTema);
+
+    Backtracking(0, temas, n, T, max_value, perm, sol, 0, 0);
+
+    free(perm);
 
     for (int i = 0; i < n; i++){
-        if (best_permutation[i] == 1){
-            (*size)++;
-        }
+        if (sol[i] == 1) (*size)++;
     }
 
     if (*size == 0){
-        free(best_permutation);
+        free(sol);
         return NULL;
     }
 
     int *ans = (int *)malloc((*size) * sizeof(int));
     for (int i = 0, j = 0; i < n; i++){
-        if (best_permutation[i] == 1){
-            ans[j++] = i + 1;
-        }
+        if (sol[i] == 1) ans[j++] = i + 1;
     }
-    free(best_permutation);
+    free(sol);
     return ans;
 }
 
-int *DP_Solve(int *t, int *p, int n, int T, int *max_value, int *size) {
-    int **DP = (int **)malloc((n + 1) * sizeof(int *));
+int *DP_Solve(int *t, int*p, int n, int T, int *max_value, int *size) {
+    int **dp = (int **)malloc((n + 1) * sizeof(int *));
     for (int i = 0; i <= n; i++) {
-        DP[i] = (int *)calloc((T + 1), sizeof(int));
+        dp[i] = (int *)calloc((T + 1), sizeof(int));
     }
 
     for (int i = 1; i <= n; i++) {
-        int *tema_actual = DP[i];
-        int *tema_anterior = DP[i - 1];
+        int *dp_row = dp[i];
+        int *dp_prev_row = dp[i - 1];
         for (int j = 1; j <= T; j++) {
-            if (t[i - 1] <= j) {
-                tema_actual[j] = max(tema_anterior[j], tema_anterior[j - t[i - 1]] + p[i - 1]);
-            } 
-            else {
-                tema_actual[j] = tema_anterior[j];
+            if (t[i - 1] > j) {
+                dp_row[j] = dp_prev_row[j];
+            } else {
+                dp_row[j] = max(dp_prev_row[j], dp_prev_row[j - t[i - 1]] + p[i - 1]);
             }
         }
     }
-    *max_value = DP[n][T];
 
-    int *ans = (int *)malloc(*size * sizeof(int));
+    *max_value = dp[n][T];
 
-    for (int i = n, j = T; i > 0 && j > 0; ) {
-        if (DP[i][j] != DP[i - 1][j]) {
-            (*size)++;
+    int *sol = (int *)calloc(n, sizeof(int));
+    for (int i = n, j = T; i > 0 && j > 0; i--) {
+        if (dp[i][j] != dp[i - 1][j]) {
+            sol[i - 1] = 1;
             j -= t[i - 1];
-            i--;
-            ans = (int *)realloc(ans, (*size) * sizeof(int));
-            ans[(*size) - 1] = i + 1;
+            (*size)++;
         }
-        else {
-            i--;
-        }
-    }
-
-    if (*size == 0) {
-        free(ans);
-        return NULL;
-    }
-
-    for (int i = 0; i < *size / 2; i++) {
-        int temp = ans[i];
-        ans[i] = ans[(*size) - i - 1];
-        ans[(*size) - i - 1] = temp;
     }
 
     for (int i = 0; i <= n; i++) {
-        free(DP[i]);
+        free(dp[i]);
     }
-    free(DP);
+    free(dp);
+
+    int *ans = (int *)malloc((*size) * sizeof(int));
+    for (int i = 0, j = 0; i < n; i++) {
+        if (sol[i] == 1) {
+            ans[j++] = i + 1;
+        }
+    }
+
     return ans;
 }
 
 int *Greedy_Solve(int *t, int *p, int n, int T, int *max_value, int *size) {
 
-    Tema *sorted_temas = (Tema *)malloc(n * sizeof(Tema));
+    int *sol = (int *)calloc(n, sizeof(int));
+    Tema *temas = (Tema *)malloc(n * sizeof(Tema));
+
     for (int i = 0; i < n; i++){
-        sorted_temas[i].tiempo = t[i];
-        sorted_temas[i].puntaje = p[i];
-        sorted_temas[i].ratio = (float)p[i] / t[i];
-        sorted_temas[i].index = i;
+        temas[i].index = i;
+        temas[i].tiempo = t[i];
+        temas[i].puntaje = p[i];
+        temas[i].ratio = (float)p[i] / t[i];
     }
 
-    qsort(sorted_temas, n, sizeof(Tema), compareTema);
+    qsort(temas, n, sizeof(Tema), compareTema);
 
-    int current_T = T;
-    int *best_solution = (int *)calloc(n, sizeof(int));
-    for (int i = 0; i < n && current_T > 0; i++){
-        if (current_T - sorted_temas[i].tiempo >= 0){
-            current_T -= sorted_temas[i].tiempo;
-            *max_value += sorted_temas[i].puntaje;
+    int time_accumulated = 0;
+    for (int i = 0; i < n; i++) {
+        if (time_accumulated + temas[i].tiempo <= T) {
+            time_accumulated += temas[i].tiempo;
+            *max_value += temas[i].puntaje;
+            sol[temas[i].index] = 1;
             (*size)++;
-            best_solution[sorted_temas[i].index] = 1;
-        }   
-    }
-
-    if (*size == 0){
-        free(best_solution);
-        free(sorted_temas);
-        return NULL;
+        } else {
+            break;
+        }
     }
 
     int *ans = (int *)malloc((*size) * sizeof(int));
-    for (int i = 0, j = 0; i < n; i++){
-        if (best_solution[i] == 1){
+    for (int i = 0, j = 0; i < n; i++) {
+        if (sol[i] == 1) {
             ans[j++] = i + 1;
         }
     }
-    free(best_solution);
-    free(sorted_temas);
+
+    free(sol);
+    free(temas);
     return ans;
 }

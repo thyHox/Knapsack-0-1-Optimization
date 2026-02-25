@@ -9,6 +9,7 @@
 #include    <math.h>
 
 typedef struct Tema {
+    int index;
     int tiempo;
     int puntaje;
     float ratio;
@@ -49,26 +50,24 @@ int *random_array(int n, int min, int max) {
     return arr;
 }
 
-void Backtracking(int depth, Tema* temas, int *remainingSum, int n, int T, int *max_value, int *perm, int *sol, int current_T, int current_value) {
-
-    if (current_value + remainingSum[depth] <= *max_value) {
-        return;
-    }
+void Backtracking(int depth, Tema* temas, int n, int T, int *max_value, int *perm, int *sol, int current_T, int current_value) {
 
     if (n == depth) {
-        *max_value = current_value;
-        for (int i = 0; i < n; i++) sol[i] = perm[i];
+        if (current_value > *max_value) {
+            *max_value = current_value;
+            for (int i = 0; i < n; i++) sol[i] = perm[i];
+        }
         return;
     }
 
-    float upper_bound = current_value;
+    int upper_bound = current_value;
     int time_accumulated = current_T;
     for (int i = depth; i < n; i++) {
         if (time_accumulated + temas[i].tiempo <= T) {
             time_accumulated += temas[i].tiempo;
             upper_bound += temas[i].puntaje;
         } else {
-            upper_bound += temas[i].puntaje * (float)(T - time_accumulated) / temas[i].tiempo;
+            upper_bound += (temas[i].puntaje * (T - time_accumulated)) / temas[i].tiempo;
             break;
         }
     }
@@ -78,36 +77,34 @@ void Backtracking(int depth, Tema* temas, int *remainingSum, int n, int T, int *
     }
 
     if (current_T + temas[depth].tiempo <= T) {
-        perm[depth] = 1;
-        Backtracking(depth + 1, temas, remainingSum, n, T, max_value, perm, sol, current_T + temas[depth].tiempo, current_value + temas[depth].puntaje);
-        perm[depth] = 0;
+        perm[temas[depth].index] = 1;
+        Backtracking(depth + 1, temas, n, T, max_value, perm, sol, current_T + temas[depth].tiempo, current_value + temas[depth].puntaje);
+        perm[temas[depth].index] = 0;
     }
 
-    Backtracking(depth + 1, temas, remainingSum, n, T, max_value, perm, sol, current_T, current_value);
+    Backtracking(depth + 1, temas, n, T, max_value, perm, sol, current_T, current_value);
     
 }
 
 int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
+
     int *perm = (int *)calloc(n, sizeof(int));
     int *sol = (int *)calloc(n, sizeof(int));
-    int *remainingSum = (int *)calloc(n + 1, sizeof(int));
 
     Tema *temas = (Tema *)malloc(n * sizeof(Tema));
     for (int i = 0; i < n; i++){
         temas[i].tiempo = t[i];
         temas[i].puntaje = p[i];
         temas[i].ratio = (float)p[i] / t[i];
+        temas[i].index = i;
     }
 
     qsort(temas, n, sizeof(Tema), compareTema);
 
-    for (int i = n - 1; i >= 0; i--){
-        remainingSum[i] = remainingSum[i + 1] + temas[i].puntaje;
-    }
-
-    Backtracking(0, temas, remainingSum, n, T, max_value, perm, sol, 0, 0);
+    Backtracking(0, temas, n, T, max_value, perm, sol, 0, 0);
 
     free(perm);
+    free(temas);
 
     for (int i = 0; i < n; i++){
         if (sol[i] == 1) (*size)++;
@@ -176,7 +173,7 @@ int main(int argc, char *argv[]) {
     int n = atoi(argv[1]); // Número de temas
     int T_mult = atoi(argv[2]); // Tiempo total disponible
 
-    int *t = random_array(n, 1, 20); // Tiempos aleatorios entre 1 y 20
+    int *t = random_array(n, 1, 5); // Tiempos aleatorios entre 1 y 20
     int *p = random_array(n, 1, 100); // Puntajes aleatorios entre 1 y 100
 
     int T = 0;
