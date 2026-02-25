@@ -4,7 +4,7 @@
 
 **Curso:** Diseño de Algoritmos  
 **Profesores:** Javier Baladrón, Pablo Román  
-**Fecha:** 5 de enero 2026  
+**Fecha de inicio:** 5 de enero 2026  
 
 ---
 
