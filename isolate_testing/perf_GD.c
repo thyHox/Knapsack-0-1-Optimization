@@ -4,6 +4,13 @@
 #include <float.h>
 #include <time.h>
 
+typedef struct Tema{
+    int index;
+    int tiempo;
+    int puntaje;
+    float ratio;
+} Tema;
+
 int random_int(int min, int max) {
     return min + rand() % (max - min + 1);
 }
@@ -16,35 +23,51 @@ int *random_array(int n, int min, int max) {
     return arr;
 }
 
-int *Greedy_Solve(int *t, int *p, int n, int T, int *max_value, int *size) {
-    int *sol = (int *)calloc(n, sizeof(int));
-    float *ratio = (float *)malloc(n * sizeof(float));
+int compareTema(const void *a, const void *b) {
 
-    for (int i = 0; i < n; i++) {
-        ratio[i] = (float)p[i] / t[i];
-    }
+    Tema *temaA = (Tema *)a;
+    Tema *temaB = (Tema *)b;
 
-    int current_time = 0;
+    if (fabs(temaA->ratio - temaB->ratio) < FLT_EPSILON) {  //Si son iguales por ratio, desempatar por puntaje
 
-    for (int i = 0; i < n && current_time < T; i++) {
-        int selected = i;
-        for (int j = 0; j < n; j++) {
-            if (fabs(ratio[j] - ratio[selected]) < FLT_EPSILON) {
-                if (p[j] > p[i]) {
-                    selected = j;
-                }
-            }
-            else if (ratio[j] > ratio[i]) {
-                selected = j;
-            }
+        if (temaA->puntaje < temaB->puntaje) {
+            return 1;
+        } else if (temaA->puntaje > temaB->puntaje) {
+            return -1;
+        } else {
+            return 0;
         }
 
-        if (current_time + t[selected] <= T) {
-            sol[selected] = 1;
-            ratio[selected] = -1;
-            current_time += t[selected];
-            *max_value += p[selected];
+    } else if (temaA->ratio < temaB->ratio) {               //Si no, ordenar por ratio
+        return 1;
+        
+    } else {
+        return -1;
+    }
+}
+
+int *Greedy_Solve(int *t, int *p, int n, int T, int *max_value, int *size) {
+    int *sol = (int *)calloc(n, sizeof(int));
+    Tema *temas = (Tema *)malloc(n * sizeof(Tema));
+
+    for (int i = 0; i < n; i++){
+        temas[i].index = i;
+        temas[i].tiempo = t[i];
+        temas[i].puntaje = p[i];
+        temas[i].ratio = (float)p[i] / t[i];
+    }
+
+    qsort(temas, n, sizeof(Tema), compareTema);
+
+    int time_accumulated = 0;
+    for (int i = 0; i < n; i++) {
+        if (time_accumulated + temas[i].tiempo <= T) {
+            time_accumulated += temas[i].tiempo;
+            *max_value += temas[i].puntaje;
+            sol[temas[i].index] = 1;
             (*size)++;
+        } else {
+            break;
         }
     }
 
@@ -55,8 +78,8 @@ int *Greedy_Solve(int *t, int *p, int n, int T, int *max_value, int *size) {
         }
     }
 
-    free(ratio);
     free(sol);
+    free(temas);
     return ans;
 }
 
