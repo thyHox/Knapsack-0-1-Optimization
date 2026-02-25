@@ -1,6 +1,6 @@
 # AlgorithmDes
 
-## Laboratorio 1 — Diseño de Algoritmos
+## Laboratorio 2 — Diseño de Algoritmos
 
 **Curso:** Diseño de Algoritmos  
 **Profesores:** Javier Baladrón, Pablo Román  
