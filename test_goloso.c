@@ -39,9 +39,9 @@ int main(int argc, char *argv[]) {
 
     int *max_valueGreedy = (int *)calloc(1, sizeof(int));
     int *sizeGreedy = (int *)calloc(1, sizeof(int));
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    timespec_get(&start, TIME_UTC);
     int *final_greedy = Greedy_Solve(t, p, n, T, max_valueGreedy, sizeGreedy);
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    timespec_get(&end, TIME_UTC);
     double time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
     printf("Execution time Greedy: %f seconds\n", time_taken);
 

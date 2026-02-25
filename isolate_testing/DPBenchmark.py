@@ -4,15 +4,14 @@ import matplotlib.pyplot as plt
 import os
 
 # --- CONFIGURATION ---
-SOURCE_FILE = "test_dinamico.c"
+SOURCE_FILE = "perf_DP.c"
 EXECUTABLE = "./test_dinamico"
 
 # X-Axis: Problem Size
 N_VALUES = [500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
 
-# Lines: Constraint Levels (T multipliers)
-# 2 = 20% capacity, 5 = 50%, 8 = 80%
-T_MULTIPLIERS = [50, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000, 10000]
+# Lines: T values
+T_VALUES = [50, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000, 10000]
 
 # REPETITIONS: How many times to run each test to calculate average
 NUM_RUNS = 10
@@ -26,7 +25,7 @@ def compile_c_code():
         return False
     print("Compiling DP code...")
     try:
-        subprocess.check_call(["gcc", SOURCE_FILE, "-o", "test_dinamico", "-lrt"])
+        subprocess.check_call(["gcc", SOURCE_FILE, "-o", "test_dinamico", "-O0"])
         print("Compilation successful.\n")
         return True
     except subprocess.CalledProcessError:
@@ -34,19 +33,18 @@ def compile_c_code():
         return False
 
 def run_benchmark():
-    benchmark_data = {m: {'n': [], 'time': []} for m in T_MULTIPLIERS}
+    benchmark_data = {m: {'n': [], 'time': []} for m in T_VALUES}
 
     print(f"Running each test {NUM_RUNS} times to calculate average...")
     print(f"{'Mult':<6} | {'n':<8} | {'T':<10} | {'Est RAM':<10} | {'Avg Time (s)':<15}")
     print("-" * 65)
 
-    for mult in T_MULTIPLIERS:
+    for t in T_VALUES:
         for n in N_VALUES:
-            T = mult
             
             # Memory Safety Check
-            if (n * T) > SAFETY_LIMIT:
-                print(f"{mult:<6} | {n:<8} | {T:<10} | >8GB       | SKIPPED (RAM Limit)")
+            if (n * t) > SAFETY_LIMIT:
+                print(f"{t:<6} | {n:<8} | {t:<10} | >8GB       | SKIPPED (RAM Limit)")
                 continue
 
             total_time = 0.0
@@ -57,10 +55,10 @@ def run_benchmark():
             for run_i in range(NUM_RUNS):
                 try:
                     process = subprocess.run(
-                        [EXECUTABLE, str(n), str(T)],
+                        [EXECUTABLE, str(n), str(t)],
                         capture_output=True, text=True, check=True
                     )
-                    match = re.search(r"Execution time DP:\s*([0-9.]+)", process.stdout)
+                    match = re.search(r"Elapsed time:\s*([0-9.]+)", process.stdout)
                     
                     if match:
                         total_time += float(match.group(1))
@@ -78,29 +76,29 @@ def run_benchmark():
                 avg_time = total_time / NUM_RUNS
                 
                 # Store data
-                benchmark_data[mult]['n'].append(n)
-                benchmark_data[mult]['time'].append(avg_time)
+                benchmark_data[t]['n'].append(n)
+                benchmark_data[t]['time'].append(avg_time)
                 
-                ram_mb = (n * T * 4) / (1024*1024)
-                print(f"{mult:<6} | {n:<8} | {T:<10} | {ram_mb:<10.0f} MB     | {avg_time:<6.6f}")
+                ram_mb = (n * t * 4) / (1024*1024)
+                print(f"{t:<6} | {n:<8} | {t:<10} | {ram_mb:<10.0f} MB     | {avg_time:<6.6f}")
             else:
-                print(f"{mult:<6} | {n:<8} | {T:<10} | -          | Error in runs")
+                print(f"{t:<6} | {n:<8} | {t:<10} | -          | Error in runs")
 
     return benchmark_data
 
 def plot_results(data):
     plt.figure(figsize=(10, 6))
     
-    for mult, values in data.items():
+    for t, values in data.items():
         if values['n']:
-            label_text = f'T = {mult}n'
+            label_text = f'T = {t}'
             plt.plot(values['n'], values['time'], marker='o', label=label_text)
 
     plt.title(f'DP Performance: O(n·T) - Promedio de {NUM_RUNS} ejecuciones')
     plt.xlabel('Número de elementos (n)')
     plt.ylabel('Tiempo promedio de ejecución (segundos)')
     plt.grid(True)
-    plt.legend(title="Nivel de restricción (kn)")
+    plt.legend(title="Tiempo total")
     
     output_file = "performance_dp_avg.png"
     plt.savefig(output_file)

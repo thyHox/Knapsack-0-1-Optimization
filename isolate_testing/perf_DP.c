@@ -21,19 +21,17 @@ int *random_array(int n, int min, int max) {
 int *DP_Solve(int *t, int*p, int n, int T, int *max_value, int *size) {
     int **dp = (int **)malloc((n + 1) * sizeof(int *));
     for (int i = 0; i <= n; i++) {
-        dp[i] = (int *)malloc((T + 1) * sizeof(int));
+        dp[i] = (int *)calloc((T + 1), sizeof(int));
     }
 
-    for (int i = 0; i <= n; i++) {
-        for (int j = 0; j <= T; j++) {
-            if (i == 0) {
-                dp[i][j] = 0;
-            } else if (j == 0) {
-                dp[i][j] = 0;
-            } else if (t[i - 1] > j) {
-                dp[i][j] = dp[i - 1][j];
+    for (int i = 1; i <= n; i++) {
+        int *dp_row = dp[i];
+        int *dp_prev_row = (i > 0) ? dp[i - 1] : NULL;
+        for (int j = 1; j <= T; j++) {
+            if (t[i - 1] > j) {
+                dp_row[j] = dp_prev_row[j];
             } else {
-                dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - t[i - 1]] + p[i - 1]);
+                dp_row[j] = max(dp_prev_row[j], dp_prev_row[j - t[i - 1]] + p[i - 1]);
             }
         }
     }
@@ -64,9 +62,9 @@ int *DP_Solve(int *t, int*p, int n, int T, int *max_value, int *size) {
     return ans;
 }
 
-int main(){
-    int n = 50000;
-    int T = 250000;
+int main(int argc, char *argv[]) {
+    int n = atoi(argv[1]);
+    int T = atoi(argv[2]);
     int *t = random_array(n, 1, 100);
     int *p = random_array(n, 1, 100);
     int max_value = 0;
@@ -79,7 +77,7 @@ int main(){
     long seconds = end.tv_sec - start.tv_sec;
     long nanoseconds = end.tv_nsec - start.tv_nsec;
     double elapsed = seconds + nanoseconds*1e-9;
-    printf("Elapsed time: %.5f seconds\n", elapsed);
+    printf("Elapsed time: %f seconds\n", elapsed);
 
     /*
     printf("Max value: %d\n", max_value);
