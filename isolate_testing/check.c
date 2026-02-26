@@ -50,7 +50,7 @@ int *random_array(int n, int min, int max) {
     return arr;
 }
 
-void Backtracking(int depth, Tema* temas, int n, int T, int *max_value, int *perm, int *sol, int current_T, int current_value) {
+void Backtracking(int depth, Tema* temas, int* pref_t, int* pref_p, int n, long long T, int *max_value, int *perm, int *sol, int current_T, int current_value) {
 
     if (n == depth) {
         if (current_value > *max_value) {
@@ -60,16 +60,25 @@ void Backtracking(int depth, Tema* temas, int n, int T, int *max_value, int *per
         return;
     }
 
-    int upper_bound = current_value;
-    int time_accumulated = current_T;
-    for (int i = depth; i < n; i++) {
-        if (time_accumulated + temas[i].tiempo <= T) {
-            time_accumulated += temas[i].tiempo;
-            upper_bound += temas[i].puntaje;
+    int remaining_T = T - current_T;
+    int target_t = pref_t[depth] + remaining_T;
+
+    int low = depth, high = n, split = depth;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (pref_t[mid] <= target_t) {
+            split = mid;
+            low = mid + 1;
         } else {
-            upper_bound += (temas[i].puntaje * (T - time_accumulated)) / temas[i].tiempo;
-            break;
+            high = mid - 1;
         }
+    }
+
+    int upper_bound = current_value + (pref_p[split] - pref_p[depth]);
+    int time_accumulated = current_T + (pref_t[split] - pref_t[depth]);
+
+    if (split < n) {
+        upper_bound += (temas[split].puntaje * (T - time_accumulated)) / temas[split].tiempo;
     }
 
     if (upper_bound <= *max_value) {
@@ -78,11 +87,11 @@ void Backtracking(int depth, Tema* temas, int n, int T, int *max_value, int *per
 
     if (current_T + temas[depth].tiempo <= T) {
         perm[temas[depth].index] = 1;
-        Backtracking(depth + 1, temas, n, T, max_value, perm, sol, current_T + temas[depth].tiempo, current_value + temas[depth].puntaje);
+        Backtracking(depth + 1, temas, pref_t, pref_p, n, T, max_value, perm, sol, current_T + temas[depth].tiempo, current_value + temas[depth].puntaje);
         perm[temas[depth].index] = 0;
     }
 
-    Backtracking(depth + 1, temas, n, T, max_value, perm, sol, current_T, current_value);
+    Backtracking(depth + 1, temas, pref_t, pref_p, n, T, max_value, perm, sol, current_T, current_value);
     
 }
 
@@ -101,10 +110,19 @@ int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
 
     qsort(temas, n, sizeof(Tema), compareTema);
 
-    Backtracking(0, temas, n, T, max_value, perm, sol, 0, 0);
+    int* pref_t = (int*)calloc((n + 1), sizeof(int));
+    int* pref_p = (int*)calloc((n + 1), sizeof(int));
+    for (int i = 0; i < n; i++) {
+        pref_t[i + 1] = pref_t[i] + temas[i].tiempo;
+        pref_p[i + 1] = pref_p[i] + temas[i].puntaje;
+    }
+
+    Backtracking(0, temas, pref_t, pref_p, n, T, max_value, perm, sol, 0, 0);
 
     free(perm);
     free(temas);
+    free(pref_t);
+    free(pref_p);
 
     for (int i = 0; i < n; i++){
         if (sol[i] == 1) (*size)++;
@@ -122,7 +140,6 @@ int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
     free(sol);
     return ans;
 }
-
 int *DP_Solve(int *t, int*p, int n, int T, int *max_value, int *size) {
     int **dp = (int **)malloc((n + 1) * sizeof(int *));
     for (int i = 0; i <= n; i++) {
@@ -171,17 +188,10 @@ int *DP_Solve(int *t, int*p, int n, int T, int *max_value, int *size) {
 
 int main(int argc, char *argv[]) {
     int n = atoi(argv[1]); // Número de temas
-    int T_mult = atoi(argv[2]); // Tiempo total disponible
+    int T = atoi(argv[2]); // Tiempo total disponible
 
-    int *t = random_array(n, 1, 5); // Tiempos aleatorios entre 1 y 20
-    int *p = random_array(n, 1, 100); // Puntajes aleatorios entre 1 y 100
-
-    int T = 0;
-    for (int i = 0; i < n; i++) {
-        T += t[i];
-    }
-
-    T = (T * T_mult) / 100; // Ajustar el tiempo total según el multiplicador
+    int *t = random_array(n, 10, 10); // Tiempos aleatorios entre 1 y 20
+    int *p = random_array(n, 10, 10); // Puntajes aleatorios entre 1 y 100
 
     int max_valueBT = 0, sizeBT = 0;
     int max_valueDP = 0, sizeDP = 0;

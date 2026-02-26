@@ -50,7 +50,7 @@ int *random_array(int n, int min, int max) {
     return arr;
 }
 
-void Backtracking(int depth, Tema* temas, int* pref_t, int* pref_p, int n, int T, int *max_value, int *perm, int *sol, int current_T, int current_value) {
+void Backtracking(int depth, Tema* temas, long long* pref_t, long long* pref_p, int n, long long T, long long *max_value, int *perm, int *sol, long long current_T, long long current_value) {
 
     if (n == depth) {
         if (current_value > *max_value) {
@@ -60,8 +60,8 @@ void Backtracking(int depth, Tema* temas, int* pref_t, int* pref_p, int n, int T
         return;
     }
 
-    int remaining_T = T - current_T;
-    int target_t = pref_t[depth] + remaining_T;
+    long long remaining_T = T - current_T;
+    long long target_t = pref_t[depth] + remaining_T;
 
     int low = depth, high = n, split = depth;
     while (low <= high) {
@@ -74,8 +74,8 @@ void Backtracking(int depth, Tema* temas, int* pref_t, int* pref_p, int n, int T
         }
     }
 
-    int upper_bound = current_value + (pref_p[split] - pref_p[depth]);
-    int time_accumulated = current_T + (pref_t[split] - pref_t[depth]);
+    long long upper_bound = current_value + (pref_p[split] - pref_p[depth]);
+    long long time_accumulated = current_T + (pref_t[split] - pref_t[depth]);
 
     if (split < n) {
         upper_bound += (temas[split].puntaje * (T - time_accumulated)) / temas[split].tiempo;
@@ -95,7 +95,7 @@ void Backtracking(int depth, Tema* temas, int* pref_t, int* pref_p, int n, int T
     
 }
 
-int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
+int *BT_Solve(int *t, int *p, int n, long long T, long long *max_value, int *size){
 
     int *perm = (int *)calloc(n, sizeof(int));
     int *sol = (int *)calloc(n, sizeof(int));
@@ -110,8 +110,8 @@ int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
 
     qsort(temas, n, sizeof(Tema), compareTema);
 
-    int* pref_t = (int*)calloc((n + 1), sizeof(int));
-    int* pref_p = (int*)calloc((n + 1), sizeof(int));
+    long long* pref_t = (long long*)calloc((n + 1), sizeof(long long));
+    long long* pref_p = (long long*)calloc((n + 1), sizeof(long long));
     for (int i = 0; i < n; i++) {
         pref_t[i + 1] = pref_t[i] + temas[i].tiempo;
         pref_p[i + 1] = pref_p[i] + temas[i].puntaje;
@@ -153,13 +153,13 @@ int main(int argc, char *argv[]) {
     int *t = random_array(n, 1, 100);
     int *p = random_array(n, 1, 100);
 
-    int T = 0;
+    long long T = 0;
     for (int i = 0; i < n; i++) {
         T += t[i];
     }
-    T = (T * T_mult) / 100;
+    T = (long long)T * T_mult / 100;
 
-    int *max_valueBT = (int *)calloc(1, sizeof(int));
+    long long *max_valueBT = (long long *)calloc(1, sizeof(long long));
     int *sizeBT = (int *)calloc(1, sizeof(int));
 
     timespec_get(&start, TIME_UTC);
