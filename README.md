@@ -24,12 +24,12 @@ Los tres algoritmos están definidos en `algoritmos.c` y comparten la estructura
 
 | Algoritmo | Función | Complejidad | Optimalidad |
 |-----------|---------|-------------|-------------|
-| **Backtracking** | `BT_Solve` | Exponencial — O(2ⁿ) con poda | ✅ Óptimo |
+| **Backtracking** | `BT_Solve` |  O(n log n) con poda | ✅ Óptimo |
 | **Programación Dinámica** | `DP_Solve` | Pseudo-polinomial — O(n·T) | ✅ Óptimo |
 | **Goloso** | `Greedy_Solve` | O(n log n) | ⚠️ Aproximado |
 
 ### Backtracking (`BT_Solve`)
-Explora recursivamente todas las combinaciones de temas ordenados por ratio `p[i]/t[i]`. Implementa **poda por cota superior**: si el valor actual más el valor potencial restante (suma de puntajes de temas aún no evaluados) no supera el mejor encontrado, se descarta la rama.
+Explora recursivamente todas las combinaciones de temas ordenados por ratio `p[i]/t[i]`. Implementa **poda por cota superior**: si el valor actual más el valor potencial restante (suma de puntajes de temas aún no evaluados) no supera el mejor encontrado, se descarta la rama. Utiliza Upper Pruning y Prefix Sums especializando el algorimo de Backtracking usando B&B.
 
 ### Programación Dinámica (`DP_Solve`)
 Solución _bottom-up_ con tabla `DP[i][j]` = máximo puntaje usando los primeros `i` temas con tiempo `j`. Reconstruye la solución trackeando decisiones tomadas.
