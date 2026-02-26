@@ -7,6 +7,7 @@
 #include <time.h>
 #include <float.h>
 #include <math.h>
+#include <stdbool.h>
 
 typedef struct Tema {
     int tiempo;
@@ -50,7 +51,7 @@ int *random_array(int n, int min, int max) {
     return arr;
 }
 
-void Backtracking(int depth, Tema* temas, long long* pref_t, long long* pref_p, int n, long long T, long long *max_value, int *perm, int *sol, long long current_T, long long current_value) {
+void Backtracking(int depth, Tema* temas, int* pref_t, int* pref_p, int n, int T, int *max_value, bool *perm, bool *sol, long long current_T, long long current_value) {
 
     if (n == depth) {
         if (current_value > *max_value) {
@@ -60,8 +61,8 @@ void Backtracking(int depth, Tema* temas, long long* pref_t, long long* pref_p, 
         return;
     }
 
-    long long remaining_T = T - current_T;
-    long long target_t = pref_t[depth] + remaining_T;
+    int remaining_T = T - current_T;
+    int target_t = pref_t[depth] + remaining_T;
 
     int low = depth, high = n, split = depth;
     while (low <= high) {
@@ -74,8 +75,8 @@ void Backtracking(int depth, Tema* temas, long long* pref_t, long long* pref_p, 
         }
     }
 
-    long long upper_bound = current_value + (pref_p[split] - pref_p[depth]);
-    long long time_accumulated = current_T + (pref_t[split] - pref_t[depth]);
+    int upper_bound = current_value + (pref_p[split] - pref_p[depth]);
+    int time_accumulated = current_T + (pref_t[split] - pref_t[depth]);
 
     if (split < n) {
         upper_bound += (temas[split].puntaje * (T - time_accumulated)) / temas[split].tiempo;
@@ -86,19 +87,19 @@ void Backtracking(int depth, Tema* temas, long long* pref_t, long long* pref_p, 
     }
 
     if (current_T + temas[depth].tiempo <= T) {
-        perm[temas[depth].index] = 1;
+        perm[temas[depth].index] = true;
         Backtracking(depth + 1, temas, pref_t, pref_p, n, T, max_value, perm, sol, current_T + temas[depth].tiempo, current_value + temas[depth].puntaje);
-        perm[temas[depth].index] = 0;
+        perm[temas[depth].index] = false;
     }
 
     Backtracking(depth + 1, temas, pref_t, pref_p, n, T, max_value, perm, sol, current_T, current_value);
     
 }
 
-int *BT_Solve(int *t, int *p, int n, long long T, long long *max_value, int *size){
+int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
 
-    int *perm = (int *)calloc(n, sizeof(int));
-    int *sol = (int *)calloc(n, sizeof(int));
+    bool *perm = (bool* )calloc(n, sizeof(bool));
+    bool *sol = (bool *)calloc(n, sizeof(bool));
 
     Tema *temas = (Tema *)malloc(n * sizeof(Tema));
     for (int i = 0; i < n; i++){
@@ -110,8 +111,8 @@ int *BT_Solve(int *t, int *p, int n, long long T, long long *max_value, int *siz
 
     qsort(temas, n, sizeof(Tema), compareTema);
 
-    long long* pref_t = (long long*)calloc((n + 1), sizeof(long long));
-    long long* pref_p = (long long*)calloc((n + 1), sizeof(long long));
+    int* pref_t = (int*)calloc((n + 1), sizeof(int));
+    int* pref_p = (int*)calloc((n + 1), sizeof(int));
     for (int i = 0; i < n; i++) {
         pref_t[i + 1] = pref_t[i] + temas[i].tiempo;
         pref_p[i + 1] = pref_p[i] + temas[i].puntaje;
@@ -125,7 +126,7 @@ int *BT_Solve(int *t, int *p, int n, long long T, long long *max_value, int *siz
     free(pref_p);
 
     for (int i = 0; i < n; i++){
-        if (sol[i] == 1) (*size)++;
+        if (sol[i]) (*size)++;
     }
 
     if (*size == 0){
@@ -135,7 +136,7 @@ int *BT_Solve(int *t, int *p, int n, long long T, long long *max_value, int *siz
 
     int *ans = (int *)malloc((*size) * sizeof(int));
     for (int i = 0, j = 0; i < n; i++){
-        if (sol[i] == 1) ans[j++] = i + 1;
+        if (sol[i]) ans[j++] = i + 1;
     }
     free(sol);
     return ans;
@@ -153,13 +154,13 @@ int main(int argc, char *argv[]) {
     int *t = random_array(n, 1, 100);
     int *p = random_array(n, 1, 100);
 
-    long long T = 0;
+    int T = 0;
     for (int i = 0; i < n; i++) {
         T += t[i];
     }
-    T = (long long)T * T_mult / 100;
+    T = (int)(((long long)T * T_mult) / 100);
 
-    long long *max_valueBT = (long long *)calloc(1, sizeof(long long));
+    int *max_valueBT = (int *)calloc(1, sizeof(int));
     int *sizeBT = (int *)calloc(1, sizeof(int));
 
     timespec_get(&start, TIME_UTC);
