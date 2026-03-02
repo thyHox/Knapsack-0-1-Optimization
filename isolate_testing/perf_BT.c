@@ -76,9 +76,9 @@ void Backtracking(int depth, Tema* temas, int* pref_t, int* pref_p, int n, int T
     }
 
     int upper_bound = current_value + (pref_p[split] - pref_p[depth]);
-    int time_accumulated = current_T + (pref_t[split] - pref_t[depth]);
 
     if (split < n) {
+        int time_accumulated = current_T + (pref_t[split] - pref_t[depth]);
         upper_bound += (temas[split].puntaje * (T - time_accumulated)) / temas[split].tiempo;
     }
 
@@ -102,11 +102,17 @@ int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
     bool *sol = (bool *)calloc(n, sizeof(bool));
 
     Tema *temas = (Tema *)malloc(n * sizeof(Tema));
+    int v_max = 0;
+    int v_maxIdx = -1;
     for (int i = 0; i < n; i++){
         temas[i].tiempo = t[i];
         temas[i].puntaje = p[i];
         temas[i].ratio = (float)p[i] / t[i];
         temas[i].index = i;
+        if (v_max < temas[i].puntaje && temas[i].tiempo <= T) {
+            v_max = temas[i].puntaje;
+            v_maxIdx = i;
+        }
     }
 
     qsort(temas, n, sizeof(Tema), compareTema);
@@ -116,6 +122,24 @@ int *BT_Solve(int *t, int *p, int n, int T, int *max_value, int *size){
     for (int i = 0; i < n; i++) {
         pref_t[i + 1] = pref_t[i] + temas[i].tiempo;
         pref_p[i + 1] = pref_p[i] + temas[i].puntaje;
+    }
+
+    int low = 0, high = n;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (pref_t[mid] <= T) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    int v_greedy = pref_p[high];
+
+    if (v_max > v_greedy) {
+        sol[temas[v_maxIdx].index] = true;
+        *max_value = v_max;
+        
     }
 
     Backtracking(0, temas, pref_t, pref_p, n, T, max_value, perm, sol, 0, 0);
@@ -149,8 +173,9 @@ int main(int argc, char *argv[]) {
     struct timespec start, end;
 
     int n = atoi(argv[1]);
-    int T_mult = atoi(argv[2]);
+    int T = atoi(argv[2]);
 
+    /*
     int *t = random_array(n, 1, 100);
     int *p = random_array(n, 1, 100);
 
@@ -159,6 +184,15 @@ int main(int argc, char *argv[]) {
         T += t[i];
     }
     T = (int)(((long long)T * T_mult) / 100);
+    */
+
+    int t[30];
+    int p[30];
+
+    for (int i = 0; i < n; i++) {
+        t[i] = 10;
+        p[i] = 10;
+    }
 
     int *max_valueBT = (int *)calloc(1, sizeof(int));
     int *sizeBT = (int *)calloc(1, sizeof(int));
@@ -176,10 +210,11 @@ int main(int argc, char *argv[]) {
         printf("%d ", final_BT[i]);
     }
     printf("\n");
-    */
 
     free(t);
     free(p);
+    */
+
     free(max_valueBT);
     free(sizeBT);
     free(final_BT);

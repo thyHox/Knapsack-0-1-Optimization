@@ -60,21 +60,33 @@ int *Greedy_Solve(int *t, int *p, int n, int T, int *max_value, int *size) {
     qsort(temas, n, sizeof(Tema), compareTema);
 
     int time_accumulated = 0;
+    Tema *maxvalue_tema = NULL;
     for (int i = 0; i < n; i++) {
         if (time_accumulated + temas[i].tiempo <= T) {
             time_accumulated += temas[i].tiempo;
             *max_value += temas[i].puntaje;
             sol[temas[i].index] = 1;
             (*size)++;
-        } else {
-            break;
         }
+        if ((maxvalue_tema == NULL || temas[i].puntaje > maxvalue_tema->puntaje) && temas[i].tiempo <= T) {
+            maxvalue_tema = &temas[i];
+        }
+    }
+
+    if (maxvalue_tema != NULL && maxvalue_tema->puntaje > *max_value) {
+        *max_value = maxvalue_tema->puntaje;
+        *size = 1;
+        int *ans = (int *)malloc(sizeof(int));
+        ans[0] = maxvalue_tema->index + 1;
+        free(sol);
+        free(temas);
+        return ans;
     }
 
     int *ans = (int *)malloc((*size) * sizeof(int));
     for (int i = 0, j = 0; i < n; i++) {
         if (sol[i] == 1) {
-            ans[j++] = i;
+            ans[j++] = i + 1;
         }
     }
 
@@ -98,7 +110,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < n; i++) {
         T += t[i];
     }
-    T = (T * T_mult) / 100;
+    T = (int)((long long)(T * T_mult) / 100);
 
     int *max_value_greedy = (int *)calloc(1, sizeof(int));
     int *size_greedy = (int *)calloc(1, sizeof(int));
