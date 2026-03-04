@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 
     printf("Opciones para T:\n");
     printf("1. Ingresar T manualmente\n");
-    printf("2. T = Porcentaje de la suma total de tiempos. Ingrese el porcentaje: \n");
+    printf("2. T = Porcentaje de la suma total de tiempos\n");
     scanf("%d", &option);
 
     int T;
