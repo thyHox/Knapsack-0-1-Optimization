@@ -2,22 +2,16 @@ import subprocess
 import re
 import matplotlib.pyplot as plt
 import os
+import statistics # Importante para calcular mean y stdev
+import numpy as np # Importante para graficar las áreas sombreadas
 
 # --- CONFIGURATION ---
 SOURCE_FILE = "perf_BT.c"
 EXECUTABLE = "./test_backtracking"
 
-# X-Axis: Problem Size
-# Warning: If you implemented aggressive pruning, you might reach N=40.
-# If simple recursion, N=30 might be your limit.
-N_VALUES = [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65]
-
-# Lines: The integer multipliers to pass to argv[2]
-# The C code divides these by 10. 
-# 2 = Tight (20%), 5 = Mid (50%), 8 = Loose (80%)
-T_MULTIPLIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-
-NUM_RUNS = 10 # How many times to run each test to calculate average
+N_VALUES = [1000000, 2000000, 3000000, 4000000, 5000000] # Ajustado para enfocarnos en N más grandes
+T_MULTIPLIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] # Peor caso
+NUM_RUNS = 1
 
 def compile_c_code():
     if not os.path.exists(SOURCE_FILE):
@@ -25,7 +19,8 @@ def compile_c_code():
         return False
     print("Compiling BT code...")
     try:
-        subprocess.check_call(["gcc", SOURCE_FILE, "-o", "test_backtracking", "-lrt"])
+        # Añadido -O2 para optimizar el código recursivo
+        subprocess.check_call(["gcc", SOURCE_FILE, "-o", "test_backtracking", "-O0", "-Wl,--stack,1073741824"]) # Aumentar el stack a 1GB para evitar overflow
         print("Compilation successful.\n")
         return True
     except subprocess.CalledProcessError:
@@ -33,22 +28,19 @@ def compile_c_code():
         return False
 
 def run_benchmark():
-    # Structure: { multiplier: { 'n': [], 'time': [] } }
-    benchmark_data = {m: {'n': [], 'time': []} for m in T_MULTIPLIERS}
+    # 1. Nueva estructura: Ahora guardamos 'std' (Standard Deviation)
+    benchmark_data = {m: {'n': [], 'time': [], 'std': []} for m in T_MULTIPLIERS}
 
-    print(f"{'%T':<6} | {'n':<8} | {'Time (s)':<15}")
-    print("-" * 35)
+    print(f"{'%T':<6} | {'n':<8} | {'Avg Time (s)':<15} | {'Std Dev':<10}")
+    print("-" * 50)
 
     for mult in T_MULTIPLIERS:
         for n in N_VALUES:
-            total_time = 0.0
-            runs_completed = 0
+            run_times = [] # Guardamos cada run individualmente
             error_occurred = False
             
-            # Ejectuar el programa varias veces para obtener un promedio
             for run_i in range(NUM_RUNS):
                 try:
-                    # Calls: ./test_backtracking <n> <mult>
                     process = subprocess.run(
                         [EXECUTABLE, str(n), str(mult)],
                         capture_output=True, text=True, check=True, timeout=4000
@@ -56,50 +48,80 @@ def run_benchmark():
                     
                     match = re.search(r"Execution time:\s*([0-9.]+)", process.stdout)
                     
-                    # Si search encontró el tiempo, lo parsea y acumula
                     if match:
                         exec_time = float(match.group(1))
-                        total_time += exec_time
-                        runs_completed += 1
+                        run_times.append(exec_time) # Agregar a la lista
                     else:
                         print(f"{mult:<6} | {n:<8} | Parse Error")
                         error_occurred = True
+                        break # Salir del loop de runs si hay error
 
                 except subprocess.TimeoutExpired:
                     print(f"{mult:<6} | {n:<8} | TIMEOUT (>4000s)")
                     error_occurred = True
-                    # Don't try larger N for this specific multiplier
-                    break
+                    break # Si hace timeout una vez, abortamos este N
                 except subprocess.CalledProcessError:
                     error_occurred = True
                     print(f"{mult:<6} | {n:<8} | Runtime Error")
+                    break
             
-            # Si no hubo errores y se completaron las runs, calcula el promedio y guarda los datos
-            if not error_occurred and runs_completed == NUM_RUNS:
-                avg_time = total_time / runs_completed
+            # 2. Calcular Promedio y Desviación Estándar
+            if not error_occurred and len(run_times) == NUM_RUNS:
+                avg_time = statistics.mean(run_times)
+                # La desviación estándar requiere al menos 2 datos
+                std_dev = statistics.stdev(run_times) if NUM_RUNS > 1 else 0.0 
+                
                 benchmark_data[mult]['n'].append(n)
                 benchmark_data[mult]['time'].append(avg_time)
-                print(f"{mult:<6} | {n:<8} | {avg_time:.6f}")
+                benchmark_data[mult]['std'].append(std_dev) # Guardar std
+                
+                print(f"{mult:<6} | {n:<8} | {avg_time:.6f}        | {std_dev:.6f}")
+            elif error_occurred:
+                # Si este N falló/hizo timeout, detenemos los N más grandes para este multiplicador
+                break 
 
     return benchmark_data
 
 def plot_results(data):
     plt.figure(figsize=(10, 6))
     
-    # Plot a line for each Multiplier
     for mult, values in data.items():
         if values['n']: 
-            label_text = f'T = sum(t) * {mult}%'
-            plt.plot(values['n'], values['time'], marker='o', label=label_text)
+            # 3. Convertir a arrays de numpy para poder sumar/restar fácilmente
+            n_arr = np.array(values['n'])
+            time_arr = np.array(values['time'])
+            std_arr = np.array(values['std'])
+            
+            label_text = f'T = {mult}% de suma de tiempos' if mult < 100 else 'T = suma total (Peor Caso)'
+            
+            # Graficar la línea principal
+            line, = plt.plot(n_arr, time_arr, marker='o', label=label_text)
+            
+            # Graficar la desviación estándar como un área sombreada
+            plt.fill_between(n_arr, 
+                             np.maximum(0, time_arr - std_arr), # Prevenir que el error baje de 0 segs
+                             time_arr + std_arr, 
+                             color=line.get_color(), 
+                             alpha=0.2) # Alpha hace que sea semitransparente
 
-    plt.title('Backtracking Performance: Implementacion de criterio goloso')
-    plt.xlabel('Cantidad de asignaturas (n)')
-    plt.ylabel('Tiempo de ejecución (segundos)')
-    plt.grid(True)
-    plt.legend(title= "Porcentaje de la suma de los tiempos (T)")
+    plt.title('Optimizacion nodos hoja')
+    plt.ylabel('Cantidad de asignaturas (n)')
+    plt.xlabel('Tiempo de ejecución (segundos)')
+    plt.grid(True, alpha=0.3)
     
-    output_file = "performance_TrulyNaiveTest.png"
-    plt.savefig(output_file)
+    # 1. Mover la leyenda fuera del gráfico a la derecha
+    plt.legend(
+        title="Restricción de Capacidad", 
+        bbox_to_anchor=(1.02, 1), # Coordenadas X, Y fuera del cuadro (1.02 es justo a la derecha)
+        loc='upper left',         # Qué esquina de la leyenda anclar a esas coordenadas
+        borderaxespad=0.          # Espaciado del borde
+    )
+    
+    # 2. Ajustar el diseño para que la leyenda no quede recortada al guardar la imagen
+    plt.tight_layout() 
+    
+    output_file = "performance_BT_Deviation.png"
+    plt.savefig(output_file, bbox_inches='tight') # bbox_inches='tight' asegura que guarde todo
     print(f"\nGraph saved as '{output_file}'")
     plt.show()
 
