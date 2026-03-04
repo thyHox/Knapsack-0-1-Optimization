@@ -1,4 +1,4 @@
-# AlgorithmDes
+# Knapsack 0-1
 
 ## Laboratorio 2 — Diseño de Algoritmos
 
