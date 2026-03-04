@@ -50,6 +50,7 @@ AlgorithmDes/
 ├── test_backtracking.c   # Runner: ejecuta BT con n y T como args
 ├── test_dinamico.c       # Runner: ejecuta DP con n y T como args
 ├── test_goloso.c         # Runner: ejecuta Greedy con n y T como args
+├── makefile              # Compila todos los ejecutables (usa GCC -O0; BT con stack 1 GiB)
 ├── isolate_testing/      # Scripts de benchmarking de rendimiento
 │   ├── BTBenchmark.py    # Benchmark de Backtracking (n, T = %sum(t))
 │   ├── DPBenchmark.py    # Benchmark de Programación Dinámica
@@ -72,27 +73,70 @@ AlgorithmDes/
 │   └── DP
 │       ├── performance_dp_avg.png           # DP básico
 │       └── performance_dpoptimized.png      # DP optimizado para acceso a cache
-└── Context.pdf           # Enunciado oficial del laboratorio
+├── Context.pdf           # Enunciado oficial del laboratorio
+└── Informe.pdf           # Análisis completo: complejidad, correctitud y benchmarks
 ```
 
 ---
 
-## Uso
+## Entorno y Requisitos
 
-Compilar y ejecutar cada test directamente con `gcc`:
+- **Compilador:** GCC (compatible con C11)
+- **Sistema operativo recomendado:** WSL (Windows Subsystem for Linux) u otro entorno Unix/Linux. El `makefile` incluye soporte para compilación en Windows.
+- **Python 3** (para los scripts de benchmarking en `isolate_testing/`)
+
+---
+
+## Uso con Makefile
+
+El repositorio incluye un `makefile` para compilar todos los ejecutables de forma sencilla.
+
+```bash
+# Compilar todos los ejecutables (test_backtracking, test_dinamico, test_goloso)
+make
+
+# Compilar un ejecutable individual
+make test_backtracking
+make test_dinamico
+make test_goloso
+
+# Limpiar ejecutables generados
+make clean
+```
+
+> **Nota sobre el stack de Backtracking:** El `makefile` configura automáticamente un stack de 1 GiB (`-Wl,--stack,1073741824`) para `test_backtracking`, necesario para valores grandes de `n` donde la recursión profunda agota el stack por defecto (1 MiB en Windows, 8 MiB en Linux/WSL).
+
+> **Nota sobre `make clean`:** El target `clean` usa el comando `del` de Windows. En sistemas Unix/Linux usar `rm -f *.exe` manualmente o adaptar el `makefile`.
+
+Una vez compilado, ejecutar cada test:
 
 ```bash
 # Backtracking: n temas, T = T_mult% de la suma total de tiempos
-gcc test_backtracking.c -o test_bt -lm && ./test_bt <n> <T_mult>
+./test_backtracking <n> <T_mult>
 
 # Programación Dinámica: n temas, tiempo máximo T
-gcc test_dinamico.c -o test_dp -lm && ./test_dp <n> <T>
+./test_dinamico <n> <T>
 
 # Goloso: n temas, T = T_mult% de la suma total de tiempos
-gcc test_goloso.c -o test_greedy -lm && ./test_greedy <n> <T_mult>
+./test_goloso <n> <T_mult>
 ```
 
-Los tiempos de entrada se generan aleatoriamente (`t[i]`, `p[i]` ∈ [1, 10]) (Pueden ser modificados).
+Los valores de entrada `t[i]` y `p[i]` se generan aleatoriamente en el rango [1, 10] (modificable en el código fuente).
+
+### Compilación manual con GCC
+
+Si se prefiere compilar sin el `makefile`:
+
+```bash
+# Backtracking (requiere 1 GiB de stack en Windows/WSL)
+gcc test_backtracking.c -o test_backtracking -O0 "-Wl,--stack,1073741824"
+
+# Programación Dinámica
+gcc test_dinamico.c -o test_dinamico -O0
+
+# Goloso
+gcc test_goloso.c -o test_goloso -O0
+```
 
 Para los benchmarks de rendimiento, ejecutar los scripts Python desde `isolate_testing/`:
 
@@ -102,3 +146,22 @@ python3 BTBenchmark.py
 python3 DPBenchmark.py
 python3 GreedyBenchmark.py
 ```
+
+---
+
+## Guía de Selección de Algoritmo
+
+Basado en el análisis del `Informe.pdf`:
+
+| Escenario | Restricciones | Enfoque recomendado |
+|-----------|---------------|---------------------|
+| `n` bajo y `T` bajo | Ninguna | **Programación Dinámica** (rápido, óptimo y estable) |
+| `n` masivo y `T` masivo | RAM y tiempo de ejecución | **Backtracking B&B** (caso promedio O(n log n)) |
+| Casos simétricos | Combinatoria | **Programación Dinámica** (inmune a la simetría si `T` lo permite) |
+| Tiempo real | Ejecución instantánea | **Goloso modificado** (garantiza ≥ 50% del óptimo) |
+
+---
+
+## Análisis Completo
+
+Para el análisis detallado de complejidad, correctitud, limitaciones prácticas y el desarrollo iterativo de cada algoritmo, consultar [`Informe.pdf`](./Informe.pdf).
