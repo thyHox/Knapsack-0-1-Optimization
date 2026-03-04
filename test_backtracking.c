@@ -32,8 +32,9 @@ int main(int argc, char *argv[]) {
     case 1:
         int max;
         int min;
-        printf("Ingrese el valor mínimo y maximo para tiempos y puntajes 'min max': ");
+        printf("Ingrese el valor mínimo y maximo para tiempos y puntajes 'min max':\n");
         scanf("%d %d", &min, &max);
+        printf("\n");
         for (int i = 0; i < n; i++) {
             t[i] = random_int(min, max);
             p[i] = random_int(min, max);
@@ -47,7 +48,9 @@ int main(int argc, char *argv[]) {
             scanf("%d", &t[i]);
             printf("Tema %d - Puntaje: ", i + 1);
             scanf("%d", &p[i]);
+            printf("\n");
         }
+        printf("\n");
         break;
     default:
         printf("Opción no válida. Por favor, elija 1 o 2.\n");
@@ -56,7 +59,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    printf("Opciones para T: ");
+    printf("Opciones para T:\n");
     printf("1. Ingresar T manualmente\n");
     printf("2. T = Porcentaje de la suma total de tiempos. Ingrese el porcentaje: \n");
     scanf("%d", &option);
@@ -67,11 +70,13 @@ int main(int argc, char *argv[]) {
         case 1:
             printf("Ingrese el valor de T: ");
             scanf("%d", &T);
+            printf("\n");
             break;
         case 2:
             int percentage;
             printf("Ingrese el porcentaje para calcular T: ");
             scanf("%d", &percentage);
+            printf("\n");
             int total_time = 0;
             for (int i = 0; i < n; i++) {
                 total_time += t[i];

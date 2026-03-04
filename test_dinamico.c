@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
         int min;
         printf("Ingrese el valor mínimo y maximo para tiempos y puntajes 'min max': ");
         scanf("%d %d", &min, &max);
+        printf("\n");
         for (int i = 0; i < n; i++) {
             t[i] = random_int(min, max);
             p[i] = random_int(min, max);
@@ -47,7 +48,9 @@ int main(int argc, char *argv[]) {
             scanf("%d", &t[i]);
             printf("Tema %d - Puntaje: ", i + 1);
             scanf("%d", &p[i]);
+            printf("\n");
         }
+        printf("\n");
         break;
     default:
         printf("Opción no válida. Por favor, elija 1 o 2.\n");
@@ -59,7 +62,7 @@ int main(int argc, char *argv[]) {
     int T;
     printf("Ingrese el valor de T: ");
     scanf("%d", &T);
-   
+    printf("\n");
 
     int *max_value = (int *)calloc(1, sizeof(int));
     int *size = (int *)calloc(1, sizeof(int));
