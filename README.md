@@ -51,20 +51,32 @@ AlgorithmDes/
 ├── test_dinamico.c       # Runner: ejecuta DP con n y T como args
 ├── test_goloso.c         # Runner: ejecuta Greedy con n y T como args
 ├── isolate_testing/      # Scripts de benchmarking de rendimiento
-│   ├── BTBenchmark.py    # Benchmark de Backtracking (n, T = %sum(t))
-│   ├── DPBenchmark.py    # Benchmark de Programación Dinámica
-│   ├── GreedyBenchmark.py# Benchmark de Greedy (n hasta 40000000)
-│   ├── perf_BT.c         # Código C para medir BT
-│   ├── perf_DP.c         # Código C para medir DP
-│   └── perf_GD.c         # Código C para medir Greedy
+│   ├── BTBenchmark.py        # Benchmark de Backtracking (n, T = %sum(t))
+│   ├── BBWorstCase.py        # Benchmark del peor caso del B&B (n fijo, T variable)
+│   ├── DeviationBT.py        # Benchmark BT con análisis de desviación estándar
+│   ├── DPBenchmark.py        # Benchmark de Programación Dinámica
+│   ├── GreedyBenchmark.py    # Benchmark de Greedy (n hasta 40000000)
+│   ├── perf_BT.c             # Código C para medir BT
+│   ├── perf_DP.c             # Código C para medir DP
+│   ├── perf_GD.c             # Código C para medir Greedy
+│   ├── check.c               # Código C para verificar correctitud de las soluciones
+│   ├── starterGreedy.c       # Implementación inicial del algoritmo Greedy (BubbleSort)
+│   ├── performance_BT_Deviation.png  # Gráfico de desviación estándar BT
+│   └── performance_greedy_avg.png    # Gráfico de rendimiento promedio Greedy
 ├── graphs/               # Gráficos de rendimiento generados por los benchmarks
 │   ├── BT
 │   │   ├── performance_TrulyNaiveTest.png   # BT sin poda ni valores
+│   │   ├── performance_basicBT.png          # BT básico con valores
 │   │   ├── performance_IniTest.png          # BT sin poda
+│   │   ├── performance_NaivePruning.png     # BT con poda ingenua
 │   │   ├── performance_TpruningBT.png       # BT con poda de tiempo
 │   │   ├── performance_FullPruning.png      # BT con cota ineficiente
-│   │   ├── FinalBT.png                      # BT con cota eficiente pero solucion lenta O(n) por nodo
-│   │   └── B&BDFS.png                       # BT B&B Final con solucion rapida O(log(n)) por nodo
+│   │   ├── FinalBT.png                      # BT con cota eficiente pero solución lenta O(n) por nodo
+│   │   ├── B&BDFS.png                       # BT B&B Final con solución rápida O(log(n)) por nodo
+│   │   ├── PrefixSum.png                    # BT con prefix sums (optimización del límite superior)
+│   │   ├── performance_BT_Deviation.png     # Análisis de desviación estándar del BT final
+│   │   ├── CoeficienteBinomial.png          # Peor caso del B&B: coeficiente binomial C(n, n/2)
+│   │   └── Best BT graph.png               # Mejor gráfico de rendimiento del BT final
 │   ├── GD
 │   │   ├── performance_greedyStart.png      # Greedy (BubbleSort)
 │   │   ├── performance_pruningGD.png        # Greedy con poda sobre T
