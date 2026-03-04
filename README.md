@@ -111,17 +111,18 @@ make clean
 Una vez compilado, ejecutar cada test:
 
 ```bash
-# Backtracking: n temas, T = T_mult% de la suma total de tiempos
-./test_backtracking <n> <T_mult>
+# Backtracking
+./test_backtracking <n>
 
-# Programación Dinámica: n temas, tiempo máximo T
-./test_dinamico <n> <T>
+# Programación Dinámica
+./test_dinamico <n>
 
-# Goloso: n temas, T = T_mult% de la suma total de tiempos
-./test_goloso <n> <T_mult>
+# Goloso
+./test_goloso <n>
 ```
 
-Los valores de entrada `t[i]` y `p[i]` se generan aleatoriamente en el rango [1, 10] (modificable en el código fuente).
+Los valores de entrada `t[i]` y `p[i]` se pueden generar aleatoriamente en el rango escogido o ingresar manualmente.
+El valor de T puede se un porcentaje de la suma total de tiempos (sum(t)) o impuesto manualmente.
 
 ### Compilación manual con GCC
 
