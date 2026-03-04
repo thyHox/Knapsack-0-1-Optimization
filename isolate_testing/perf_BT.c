@@ -61,6 +61,20 @@ void Backtracking(int depth, Tema* temas, int* pref_t, int* pref_p, int n, int T
         return;
     }
 
+    if (depth == n-1){
+        bool can_take = current_T + temas[depth].tiempo <= T;
+        if (can_take) {
+            current_T += temas[depth].tiempo;
+            current_value += temas[depth].puntaje;
+        }
+        if (current_value > *max_value) {
+            *max_value = current_value;
+            for (int i = 0; i < n; i++) sol[i] = perm[i];
+            if (current_T <= T) sol[temas[depth].index] = can_take;
+        }
+        return;
+    }
+
     int remaining_T = T - current_T;
     int target_t = pref_t[depth] + remaining_T;
 

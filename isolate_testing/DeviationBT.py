@@ -9,13 +9,9 @@ import numpy as np # Importante para graficar las áreas sombreadas
 SOURCE_FILE = "perf_BT.c"
 EXECUTABLE = "./test_backtracking"
 
-N_VALUES = [100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000,
-            1100000, 1200000, 1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000, 2000000,
-            2100000, 2200000, 2300000, 2400000, 2500000, 2600000, 2700000, 2800000, 2900000, 3000000,
-            3100000, 3200000, 3300000, 3400000, 3500000, 3600000, 3700000, 3800000, 3900000, 4000000,
-            4100000, 4200000, 4300000, 4400000, 4500000, 4600000, 4700000, 4800000, 4900000, 5000000] # Ajustado para enfocarnos en N más grandes
-T_MULTIPLIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-NUM_RUNS = 10 
+N_VALUES = [1000000, 2000000, 3000000, 4000000, 5000000] # Ajustado para enfocarnos en N más grandes
+T_MULTIPLIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] # Peor caso
+NUM_RUNS = 1
 
 def compile_c_code():
     if not os.path.exists(SOURCE_FILE):
@@ -96,7 +92,7 @@ def plot_results(data):
             time_arr = np.array(values['time'])
             std_arr = np.array(values['std'])
             
-            label_text = f'T = {mult}% sum(t)'
+            label_text = f'T = {mult}% de suma de tiempos' if mult < 100 else 'T = suma total (Peor Caso)'
             
             # Graficar la línea principal
             line, = plt.plot(n_arr, time_arr, marker='o', label=label_text)
@@ -108,9 +104,9 @@ def plot_results(data):
                              color=line.get_color(), 
                              alpha=0.2) # Alpha hace que sea semitransparente
 
-    plt.title('Backtracking Performance: Branch and Bound (DFS)')
-    plt.xlabel('Cantidad de asignaturas (n)')
-    plt.ylabel('Tiempo de ejecución (segundos)')
+    plt.title('Optimizacion nodos hoja')
+    plt.ylabel('Cantidad de asignaturas (n)')
+    plt.xlabel('Tiempo de ejecución (segundos)')
     plt.grid(True, alpha=0.3)
     
     # 1. Mover la leyenda fuera del gráfico a la derecha

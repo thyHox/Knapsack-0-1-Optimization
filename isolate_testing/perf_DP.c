@@ -26,7 +26,7 @@ int *DP_Solve(int *t, int*p, int n, int T, int *max_value, int *size) {
 
     for (int i = 1; i <= n; i++) {
         int *dp_row = dp[i];
-        int *dp_prev_row = (i > 0) ? dp[i - 1] : NULL;
+        int *dp_prev_row = dp[i - 1];
         for (int j = 1; j <= T; j++) {
             if (t[i - 1] > j) {
                 dp_row[j] = dp_prev_row[j];
