@@ -6,17 +6,19 @@
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 2) {
+    // Fallo de ejecucion
+     if (argc != 2) {
         printf("Ejecutar usando la sintaxis: %s <Cantidad de temas (n)>\n", argv[0]);
         return 1;
     }
 
     int n = atoi(argv[1]);
 
+    // Semilla para generación de números aleatorios
     srand(time(NULL));
-
     struct timespec start, end;
 
+    // Generación de datos
     printf("Opciones para distribución de datos:\n");
     printf("1. Generar tiempos y puntajes aleatorios\n");
     printf("2. Ingresar tiempos y puntajes manualmente\n");
@@ -85,28 +87,31 @@ int main(int argc, char *argv[]) {
             return 1;
     }
 
-    int *max_valueGreedy = (int *)calloc(1, sizeof(int));
-    int *sizeGreedy = (int *)calloc(1, sizeof(int));
+    int *max_value = (int *)calloc(1, sizeof(int));
+    int *size = (int *)calloc(1, sizeof(int));
+
+    // Medición del tiempo de ejecución
     timespec_get(&start, TIME_UTC);
-    int *final_greedy = Greedy_Solve(t, p, n, T, max_valueGreedy, sizeGreedy);
+    int *final_greedy = Greedy_Solve(t, p, n, T, max_value, size);  //Ejecucion
     timespec_get(&end, TIME_UTC);
     double time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
-    printf("Execution time Greedy: %f seconds\n", time_taken);
+    printf("Tiempo de ejecución: %f seconds\n", time_taken);
 
+    // Impresion de resultados
     if (final_greedy != NULL) {
-        printf("Conjunto de temas Greedy: ");
-        for (int i = 0; i < *sizeGreedy; i++) {
+        printf("Conjunto de temas: ");
+        for (int i = 0; i < *size; i++) {
             printf("%d ", final_greedy[i]);
         }
-        printf("\nMax value Greedy: %d\n", *max_valueGreedy);
+        printf("\nPuntaje maximo alcanzado: %d\n", *max_value);
     } else {
-        printf("No solution found by Greedy.\n");
+        printf("No se encontró solución.\n");
     }
 
     free(t);
     free(p);
     free(final_greedy);
-    free(max_valueGreedy);
-    free(sizeGreedy);
+    free(max_value);
+    free(size);
     return 0;
 }

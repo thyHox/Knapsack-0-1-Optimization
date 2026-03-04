@@ -5,6 +5,7 @@
 
 int main(int argc, char *argv[]) {
 
+    //Fallo de ejecucion
     if (argc != 2) {
         printf("Ejecutar usando la sintaxis: %s <Cantidad de temas (n)>\n", argv[0]);
         return 1;
@@ -12,10 +13,11 @@ int main(int argc, char *argv[]) {
 
     int n = atoi(argv[1]);
 
+    // Semilla para generación de números aleatorios
     srand(time(NULL));
+    struct timespec start, end; // Variables para medir el tiempo de ejecución
 
-    struct timespec start, end;
-
+    // Generación de datos
     printf("Opciones para distribución de datos:\n");
     printf("1. Generar tiempos y puntajes aleatorios\n");
     printf("2. Ingresar tiempos y puntajes manualmente\n");
@@ -74,7 +76,7 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < n; i++) {
                 total_time += t[i];
             }
-            T = (total_time * percentage) / 100;
+            T = (int)((long long)((total_time * percentage)) / 100);
             printf("T calculado: %d\n", T);
             break;
         default:
@@ -84,29 +86,31 @@ int main(int argc, char *argv[]) {
             return 1;
     }
 
-    int *max_valueBT = (int *)calloc(1, sizeof(int));
-    int *sizeBT = (int *)calloc(1, sizeof(int));
+    int *max_value = (int *)calloc(1, sizeof(int));
+    int *size = (int *)calloc(1, sizeof(int));
 
+    // Medición del tiempo de ejecución
     timespec_get(&start, TIME_UTC);
-    int *final_bt = BT_Solve(t, p, n, T, max_valueBT, sizeBT);
+    int *final_bt = BT_Solve(t, p, n, T, max_value, size);  //Ejecucion
     timespec_get(&end, TIME_UTC);
     double time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
-    printf("Execution time BT: %f seconds\n", time_taken);
+    printf("Tiempo de ejecución: %f seconds\n", time_taken);
 
+    // Impresión de resultados
     if (final_bt != NULL) {
-        printf("Conjunto de temas BT: ");
-        for (int i = 0; i < *sizeBT; i++) {
+        printf("Conjunto de temas: ");
+        for (int i = 0; i < *size; i++) {
             printf("%d ", final_bt[i]);
         }
-        printf("\nMax value BT: %d\n", *max_valueBT);
+        printf("\nPuntaje maximo alcanzado: %d\n", *max_value);
     } else {
-        printf("No solution found by BT.\n");
+        printf("No se encontró solución.\n");
     }
 
     free(t);
     free(p);
     free(final_bt);
-    free(max_valueBT);
-    free(sizeBT);
+    free(max_value);
+    free(size);
     return 0;
 }
