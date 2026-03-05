@@ -14,7 +14,7 @@ El repositorio resuelve un problema de **selección óptima de temas de estudio*
 
 > Un estudiante dispone de un tiempo máximo **T** para preparar un examen. Existen **n** temas, cada uno con un tiempo requerido `t[i]` y un puntaje `p[i]`. El objetivo es seleccionar un subconjunto de temas que maximice el puntaje total sin exceder el tiempo disponible. Un tema se estudia completamente o no se estudia.
 
-**Formalmente:** dados `t[1..n]`, `p[1..n]` y `T`, encontrar `S ⊆ {1,…,n}` tal que `∑t[i] ≤ T` y `∑p[i]` sea máximo.
+**Formalmente:** dados `t[1..n]`, `p[1..n]` y `T`, encontrar `S ⊆ {1,…,n}` tal que `∑p[i]` sea máximo.
 
 ---
 
@@ -26,8 +26,7 @@ Los tres algoritmos están definidos en `algoritmos.c` y comparten la estructura
 |-----------|---------|-------------|-------------|
 | **Backtracking** | `BT_Solve` | Caso Promedio O(n log n) | ✅ Óptimo |
 | **Programación Dinámica** | `DP_Solve` | Pseudo-polinomial — O(n·T) | ✅ Óptimo |
-| **Goloso** | `Greedy_Solve` | O(n log n) | ⚠️ >= 50% del Optimo |
-
+| **Goloso** | `Greedy_Solve` | O(n log n) | ⚠️50% del Optimo ≤|
 ### Backtracking (`BT_Solve`)
 Explora recursivamente todas las combinaciones de temas ordenados por ratio `p[i]/t[i]`. Implementa **poda por cota superior**: si el valor actual más el valor potencial restante (suma de puntajes de temas aún no evaluados) no supera el mejor encontrado, se descarta la rama. Utiliza Upper Pruning y Prefix Sums especializando el algorimo de Backtracking usando B&B.
 CAMBIO: Cota superior: Fractional Knapsack - Cota inferior: Knapsack 0/1 (Greedy)
